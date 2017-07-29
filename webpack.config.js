@@ -1,4 +1,4 @@
-const debug = process.env.NODE_ENV !== "production";
+const debug = process.env.NODE_ENV !== 'production';
 const path = require('path');
 const webpack = require('webpack');
 
@@ -9,10 +9,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   context: path.join(__dirname, 'src'),
   devtool: debug ? 'inline-source-map' : false,
-  entry: [
-    './scripts/game.js',
-    './styles/main.scss',
-  ],
+  entry: {
+    mian: './scripts/main.js',
+    vendor: ['react', 'react-dom'],
+  },
   module: {
     rules: [{
       test: /\.scss$/,
@@ -35,7 +35,8 @@ module.exports = {
       use: [{
         loader: 'babel-loader',
         options: {
-          presets: ['env', 'es2015'],
+          presets: ['react', 'es2015', 'stage-0'],
+          plugins: ['react-html-attrs', 'transform-decorators-legacy', 'transform-class-properties'],
         },
       }, {
         loader: 'eslint-loader',
@@ -43,7 +44,7 @@ module.exports = {
     }],
   },
   output: {
-    filename: 'js/main.[chunkhash].min.js',
+    filename: 'js/[name].[chunkhash].min.js',
     path: path.join(__dirname, 'dist'),
     publicPath: debug ? '/' : '/LudumDare-39/',
   },
@@ -53,7 +54,12 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'index.html',
     }),
-    new ExtractTextPlugin('css/main.[contenthash].css'),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+    }),
+    new ExtractTextPlugin({
+      filename: 'css/main.[contenthash].css',
+    }),
   ].concat(debug ? [
     // development only
   ] : [
