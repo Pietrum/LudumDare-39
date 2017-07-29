@@ -1,5 +1,6 @@
-const webpack = require('webpack');
+const debug = process.env.NODE_ENV !== "production";
 const path = require('path');
+const webpack = require('webpack');
 
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -7,7 +8,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   context: path.join(__dirname, 'src'),
-  devtool: 'inline-source-map',
+  devtool: debug ? 'inline-source-map' : false,
   entry: [
     './scripts/game.js',
     './styles/main.scss',
@@ -44,13 +45,20 @@ module.exports = {
   output: {
     filename: 'js/main.[chunkhash].min.js',
     path: path.join(__dirname, 'dist'),
-    publicPath: '/',
+    publicPath: debug ? '/' : '/LudumDare-39/',
   },
   plugins: [
+    // globals
     new CleanWebpackPlugin('dist'),
     new HtmlWebpackPlugin({
       template: 'index.html',
     }),
     new ExtractTextPlugin('css/main.[contenthash].css'),
-  ],
+  ].concat(debug ? [
+    // development only
+  ] : [
+    // production only
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.optimize.UglifyJsPlugin({ mangle: false, sourcemap: false }),
+  ]),
 };
